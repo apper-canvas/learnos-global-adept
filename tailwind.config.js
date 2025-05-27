@@ -47,6 +47,15 @@ export default {
       }
     }
   },
+  safelist: [
+    // ReactQuill classes
+    {
+      pattern: /^ql-/,
+      variants: ['hover', 'focus', 'active'],
+    },
+  ],
+
+  },
   plugins: [],
   darkMode: 'class',
 }

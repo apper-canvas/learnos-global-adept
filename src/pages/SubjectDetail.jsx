@@ -527,24 +527,32 @@ export default function SubjectDetail() {
               </label>
               <div className="rich-text-editor">
                 <ReactQuill
+                  theme="snow"
                   value={moduleForm.learningTopics}
                   onChange={(value) => setModuleForm(prev => ({ ...prev, learningTopics: value }))}
                   placeholder="Describe the learning topics, objectives, and key concepts for this module..."
                   modules={{
-                    toolbar: [
-                      [{ 'header': [1, 2, 3, false] }],
-                      ['bold', 'italic', 'underline', 'strike'],
-                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                      ['blockquote', 'code-block'],
-                      ['link'],
-                      ['clean']
-                    ]
+                    toolbar: {
+                      container: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'indent': '-1'}, { 'indent': '+1' }],
+                        ['blockquote', 'code-block'],
+                        ['link', 'clean']
+                      ]
+                    }
                   }}
                   formats={[
                     'header', 'bold', 'italic', 'underline', 'strike',
-                    'list', 'bullet', 'blockquote', 'code-block', 'link'
+                    'list', 'bullet', 'indent', 'blockquote', 'code-block', 'link'
                   ]}
+                  style={{
+                    backgroundColor: 'white'
+                  }}
                 />
+              </div>
+
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Use the rich text editor to add detailed learning topics, objectives, and key concepts for this module.
