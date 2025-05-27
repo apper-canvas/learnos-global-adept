@@ -204,10 +204,11 @@ export default function MainFeature() {
           <motion.div
             key={subject.id}
             className="learning-card p-6 group"
-
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
+          >
+
           >
             <div className="flex items-start justify-between mb-4">
               <div className={`w-12 h-12 ${subject.color} rounded-xl flex items-center justify-center`}>
