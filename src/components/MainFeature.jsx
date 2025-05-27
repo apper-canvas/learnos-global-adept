@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-toastify'
 import ApperIcon from './ApperIcon'
 
 export default function MainFeature() {
+  const navigate = useNavigate()
+
   const [activeTab, setActiveTab] = useState('subjects')
   const [subjects, setSubjects] = useState([
     { id: 1, title: 'Machine Learning', description: 'Deep learning fundamentals', progress: 75, color: 'bg-blue-500', modules: 12, completedModules: 9 },
@@ -71,6 +75,11 @@ export default function MainFeature() {
     ))
     toast.success('Progress updated!')
   }
+
+  const handleSubjectClick = (subjectId) => {
+    navigate(`/subject/${subjectId}`)
+  }
+
 
   const CircularProgress = ({ progress, size = 60 }) => {
     const radius = (size - 8) / 2
@@ -204,16 +213,29 @@ export default function MainFeature() {
           <motion.div
             key={subject.id}
             className="learning-card p-6 group"
+            className="learning-card p-6 group cursor-pointer hover:scale-[1.02] transition-all duration-300"
+            onClick={() => handleSubjectClick(subject.id)}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
-          >
-
           >
             <div className="flex items-start justify-between mb-4">
               <div className={`w-12 h-12 ${subject.color} rounded-xl flex items-center justify-center`}>
                 <ApperIcon name="BookOpen" className="w-6 h-6 text-white" />
               </div>
+              <div 
+                className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => handleDeleteSubject(subject.id)}
+                  className="p-1.5 neu-button rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                >
+                  <ApperIcon name="Trash2" className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
               <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => handleDeleteSubject(subject.id)}
@@ -244,6 +266,12 @@ export default function MainFeature() {
                 <span className="font-medium text-slate-900 dark:text-slate-100">{subject.progress}%</span>
               </div>
               <input
+            <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-600 dark:text-slate-400">Progress</span>
+                <span className="font-medium text-slate-900 dark:text-slate-100">{subject.progress}%</span>
+              </div>
+              <input
                 type="range"
                 min="0"
                 max="100"
@@ -252,6 +280,7 @@ export default function MainFeature() {
                 className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
               />
             </div>
+
           </motion.div>
         ))}
       </div>
