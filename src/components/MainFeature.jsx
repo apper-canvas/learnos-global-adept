@@ -203,7 +203,8 @@ export default function MainFeature() {
         {subjects.map((subject, index) => (
           <motion.div
             key={subject.id}
-            className="learning-card p-6 group hover:scale-[1.02] transition-transform duration-300"
+            className="learning-card p-6 group"
+
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
