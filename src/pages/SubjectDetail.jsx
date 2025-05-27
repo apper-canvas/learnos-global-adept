@@ -404,7 +404,6 @@ export default function SubjectDetail() {
       </AnimatePresence>
 
       <div className="space-y-4">
-      <div className="space-y-4">
         {modules.map((module, index) => (
           <motion.div
             key={module.id}
