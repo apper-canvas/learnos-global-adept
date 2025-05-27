@@ -15,6 +15,8 @@ export default function SubjectDetail() {
   const [modules, setModules] = useState([])
   const [notes, setNotes] = useState([])
   const [assignments, setAssignments] = useState([])
+  const [expandedModules, setExpandedModules] = useState(new Set())
+
   
   const [showAddModuleForm, setShowAddModuleForm] = useState(false)
   const [showAddNoteForm, setShowAddNoteForm] = useState(false)
@@ -98,6 +100,19 @@ export default function SubjectDetail() {
     ))
     toast.success('Module status updated!')
   }
+
+  const handleToggleModuleExpansion = (moduleId) => {
+    setExpandedModules(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(moduleId)) {
+        newSet.delete(moduleId)
+      } else {
+        newSet.add(moduleId)
+      }
+      return newSet
+    })
+  }
+
 
   const handleAddNote = (e) => {
     e.preventDefault()
@@ -389,6 +404,7 @@ export default function SubjectDetail() {
       </AnimatePresence>
 
       <div className="space-y-4">
+      <div className="space-y-4">
         {modules.map((module, index) => (
           <motion.div
             key={module.id}
@@ -398,10 +414,13 @@ export default function SubjectDetail() {
             transition={{ duration: 0.4, delay: index * 0.1 }}
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4 flex-1">
                 <button
-                  onClick={() => handleToggleModule(module.id)}
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleToggleModule(module.id)
+                  }}
+                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors flex-shrink-0 ${  
                     module.completed 
                       ? 'bg-green-500 border-green-500 text-white' 
                       : 'border-slate-300 dark:border-slate-600 hover:border-green-500'
@@ -409,29 +428,112 @@ export default function SubjectDetail() {
                 >
                   {module.completed && <ApperIcon name="Check" className="w-4 h-4" />}
                 </button>
-                <div>
-                  <h4 className={`text-lg font-semibold ${module.completed ? 'text-slate-500 dark:text-slate-400 line-through' : 'text-slate-900 dark:text-slate-100'}`}>
-                    {module.title}
-                  </h4>
-                  {module.description && (
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">{module.description}</p>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="text-sm text-slate-600 dark:text-slate-400">
-                  {module.duration}
-                </div>
-                {module.completed && (
-                  <div className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-1 rounded-lg text-xs font-medium">
-                    Completed
+                <div 
+                  className="flex-1 cursor-pointer" 
+                  onClick={() => handleToggleModuleExpansion(module.id)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className={`text-lg font-semibold ${module.completed ? 'text-slate-500 dark:text-slate-400 line-through' : 'text-slate-900 dark:text-slate-100'}`}>
+                        {module.title}
+                      </h4>
+                      {module.description && !expandedModules.has(module.id) && (
+                        <p className="text-slate-600 dark:text-slate-400 text-sm truncate">{module.description}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="text-sm text-slate-600 dark:text-slate-400">
+                        {module.duration}
+                      </div>
+                      {module.completed && (
+                        <div className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-1 rounded-lg text-xs font-medium">
+                          Completed
+                        </div>
+                      )}
+                      <motion.div
+                        animate={{ rotate: expandedModules.has(module.id) ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <ApperIcon 
+                          name="ChevronDown" 
+                          className="w-5 h-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" 
+                        />
+                      </motion.div>
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             </div>
+            
+            <AnimatePresence>
+              {expandedModules.has(module.id) && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700"
+                >
+                  <div className="space-y-4">
+                    <div>
+                      <h5 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">Module Description</h5>
+                      <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                        {module.description || 'No description available for this module.'}
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
+                        <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Duration</div>
+                        <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{module.duration}</div>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
+                        <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Status</div>
+                        <div className={`text-sm font-semibold ${
+                          module.completed 
+                            ? 'text-green-600 dark:text-green-400' 
+                            : 'text-orange-600 dark:text-orange-400'
+                        }`}>
+                          {module.completed ? 'Completed' : 'In Progress'}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
+                        Module {index + 1}
+                      </span>
+                      <span className="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs font-medium rounded-full">
+                        {module.completed ? 'Completed' : 'Pending'}
+                      </span>
+                    </div>
+                    
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-700">
+                      <motion.button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleToggleModule(module.id)
+                          toast.success(`Module marked as ${module.completed ? 'incomplete' : 'complete'}!`)
+                        }}
+                        className={`w-full py-2 px-4 rounded-xl font-medium transition-all duration-300 ${
+                          module.completed
+                            ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/30'
+                            : 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/30'
+                        }`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {module.completed ? 'Mark as Incomplete' : 'Mark as Complete'}
+                      </motion.button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         ))}
       </div>
+
     </div>
   )
 
