@@ -551,7 +551,6 @@ export default function SubjectDetail() {
               </p>
             </div>
 
-            </div>
             <div className="flex space-x-3">
               <button
                 type="submit"
