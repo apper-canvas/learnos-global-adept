@@ -212,7 +212,6 @@ export default function MainFeature() {
         {subjects.map((subject, index) => (
           <motion.div
             key={subject.id}
-            className="learning-card p-6 group"
             className="learning-card p-6 group cursor-pointer hover:scale-[1.02] transition-all duration-300"
             onClick={() => handleSubjectClick(subject.id)}
             initial={{ opacity: 0, y: 20 }}
@@ -236,16 +235,6 @@ export default function MainFeature() {
               </div>
             </div>
 
-              <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => handleDeleteSubject(subject.id)}
-                  className="p-1.5 neu-button rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                >
-                  <ApperIcon name="Trash2" className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
             <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
               {subject.title}
             </h4>
@@ -260,12 +249,6 @@ export default function MainFeature() {
               <CircularProgress progress={subject.progress} size={50} />
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600 dark:text-slate-400">Progress</span>
-                <span className="font-medium text-slate-900 dark:text-slate-100">{subject.progress}%</span>
-              </div>
-              <input
             <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-600 dark:text-slate-400">Progress</span>
@@ -280,6 +263,7 @@ export default function MainFeature() {
                 className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
               />
             </div>
+          </motion.div>
 
           </motion.div>
         ))}
