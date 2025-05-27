@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-toastify'
 import ApperIcon from '../components/ApperIcon'
+import ReactQuill from 'react-quill'
+
 
 export default function SubjectDetail() {
   const { id } = useParams()
@@ -22,7 +24,8 @@ export default function SubjectDetail() {
   const [showAddNoteForm, setShowAddNoteForm] = useState(false)
   const [showAddAssignmentForm, setShowAddAssignmentForm] = useState(false)
   
-  const [moduleForm, setModuleForm] = useState({ title: '', description: '', duration: '' })
+  const [moduleForm, setModuleForm] = useState({ title: '', description: '', duration: '', learningTopics: '' })
+
   const [noteForm, setNoteForm] = useState({ title: '', content: '', tags: '' })
   const [assignmentForm, setAssignmentForm] = useState({ title: '', description: '', dueDate: '', priority: 'medium' })
 
@@ -223,7 +226,8 @@ export default function SubjectDetail() {
     }
 
     setModules(prev => [...prev, newModule])
-    setModuleForm({ title: '', description: '', duration: '' })
+    setModuleForm({ title: '', description: '', duration: '', learningTopics: '' })
+
     setShowAddModuleForm(false)
     toast.success('Module added successfully!')
   }
@@ -515,6 +519,36 @@ export default function SubjectDetail() {
                 className="learning-input h-20 resize-none"
                 placeholder="Describe what this module covers"
               />
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Learning Topics (Rich Text)
+              </label>
+              <div className="rich-text-editor">
+                <ReactQuill
+                  value={moduleForm.learningTopics}
+                  onChange={(value) => setModuleForm(prev => ({ ...prev, learningTopics: value }))}
+                  placeholder="Describe the learning topics, objectives, and key concepts for this module..."
+                  modules={{
+                    toolbar: [
+                      [{ 'header': [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline', 'strike'],
+                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                      ['blockquote', 'code-block'],
+                      ['link'],
+                      ['clean']
+                    ]
+                  }}
+                  formats={[
+                    'header', 'bold', 'italic', 'underline', 'strike',
+                    'list', 'bullet', 'blockquote', 'code-block', 'link'
+                  ]}
+                />
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Use the rich text editor to add detailed learning topics, objectives, and key concepts for this module.
+              </p>
+            </div>
+
             </div>
             <div className="flex space-x-3">
               <button
