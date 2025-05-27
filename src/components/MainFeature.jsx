@@ -265,7 +265,6 @@ export default function MainFeature() {
             </div>
           </motion.div>
 
-          </motion.div>
         ))}
       </div>
     </div>
