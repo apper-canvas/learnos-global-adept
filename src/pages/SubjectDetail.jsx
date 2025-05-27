@@ -552,12 +552,13 @@ export default function SubjectDetail() {
                   }}
                 />
               </div>
-
-              </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Use the rich text editor to add detailed learning topics, objectives, and key concepts for this module.
               </p>
             </div>
+
+            <div className="flex space-x-3">
+
 
             <div className="flex space-x-3">
               <button
