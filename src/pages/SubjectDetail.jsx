@@ -519,6 +519,8 @@ export default function SubjectDetail() {
                 className="learning-input h-20 resize-none"
                 placeholder="Describe what this module covers"
               />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Learning Topics (Rich Text)
