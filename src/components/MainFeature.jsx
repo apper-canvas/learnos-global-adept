@@ -31,6 +31,9 @@ export default function MainFeature() {
   const [editForm, setEditForm] = useState({ title: '', content: '', tags: '' })
   const [editingGoal, setEditingGoal] = useState(null)
   const [goalFormData, setGoalFormData] = useState({ title: '', description: '', targetDate: '', progress: 0 })
+  const [loadingGoals, setLoadingGoals] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(true) // Assuming authenticated by default for now
+
 
 
   const [formData, setFormData] = useState({ title: '', description: '', color: 'bg-blue-500' })
@@ -410,6 +413,7 @@ export default function MainFeature() {
               />
             </div>
           </motion.div>
+          </motion.div>
 
         ))}
       </div>
@@ -697,255 +701,287 @@ export default function MainFeature() {
   )
 
 
-  const renderGoals = () => (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Learning Goals</h3>
-          <p className="text-slate-600 dark:text-slate-400">Set and track your learning objectives</p>
+  const renderGoals = () => {
+    if (loadingGoals) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="ml-3 text-slate-600 dark:text-slate-400">Loading goals...</span>
         </div>
-        <motion.button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="flex items-center space-x-2 bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transition-all duration-300"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <ApperIcon name="Plus" className="w-4 h-4" />
-          <span>Add Goal</span>
-        </motion.button>
-      </div>
+      )
+    }
 
-      <AnimatePresence>
-        {showAddForm && (
-          <motion.form
-            onSubmit={handleAddGoal}
-            className="learning-card p-6 space-y-4"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Learning Goals</h3>
+            <p className="text-slate-600 dark:text-slate-400">Set and track your learning objectives</p>
+          </div>
+          <motion.button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="flex items-center space-x-2 bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transition-all duration-300"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Goal Title
-                </label>
-                <input
-                  type="text"
-                  value={goalFormData.title}
-                  onChange={(e) => setGoalFormData(prev => ({ ...prev, title: e.target.value }))}
-                  className="learning-input"
-                  placeholder="Enter goal title"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Target Date
-                </label>
-                <input
-                  type="date"
-                  value={goalFormData.targetDate}
-                  onChange={(e) => setGoalFormData(prev => ({ ...prev, targetDate: e.target.value }))}
-                  className="learning-input"
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Description
-              </label>
-              <textarea
-                value={goalFormData.description}
-                onChange={(e) => setGoalFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="learning-input h-20 resize-none"
-                placeholder="Describe what you want to achieve"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Initial Progress: {goalFormData.progress}%
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={goalFormData.progress}
-                onChange={(e) => setGoalFormData(prev => ({ ...prev, progress: parseInt(e.target.value) }))}
-                className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
-              />
-            </div>
-            <div className="flex space-x-3">
-              <button
-                type="submit"
-                className="flex items-center space-x-2 bg-primary text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-dark transition-colors"
-              >
-                <ApperIcon name="Check" className="w-4 h-4" />
-                <span>Add Goal</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowAddForm(false)}
-                className="flex items-center space-x-2 neu-button px-4 py-2 rounded-xl font-medium text-slate-600 dark:text-slate-400"
-              >
-                <ApperIcon name="X" className="w-4 h-4" />
-                <span>Cancel</span>
-              </button>
-            </div>
-          </motion.form>
-        )}
-      </AnimatePresence>
-      
-      <div className="space-y-4">
-        {goals.map((goal, index) => (
-          <motion.div
-            key={goal.id}
-            className="learning-card p-6 group"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
-          >
-            {editingGoal === goal.id ? (
-              <form onSubmit={handleUpdateGoal} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Goal Title
-                    </label>
-                    <input
-                      type="text"
-                      value={goalFormData.title}
-                      onChange={(e) => setGoalFormData(prev => ({ ...prev, title: e.target.value }))}
-                      className="learning-input"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Target Date
-                    </label>
-                    <input
-                      type="date"
-                      value={goalFormData.targetDate}
-                      onChange={(e) => setGoalFormData(prev => ({ ...prev, targetDate: e.target.value }))}
-                      className="learning-input"
-                      required
-                    />
-                  </div>
-                </div>
+            <ApperIcon name="Plus" className="w-4 h-4" />
+            <span>Add Goal</span>
+          </motion.button>
+        </div>
+
+        <AnimatePresence>
+          {showAddForm && (
+            <motion.form
+              onSubmit={handleAddGoal}
+              className="learning-card p-6 space-y-4"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={goalFormData.description}
-                    onChange={(e) => setGoalFormData(prev => ({ ...prev, description: e.target.value }))}
-                    className="learning-input h-20 resize-none"
-                    placeholder="Describe what you want to achieve"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Progress: {goalFormData.progress}%
+                    Goal Title
                   </label>
                   <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={goalFormData.progress}
-                    onChange={(e) => setGoalFormData(prev => ({ ...prev, progress: parseInt(e.target.value) }))}
-                    className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+                    type="text"
+                    value={goalFormData.title}
+                    onChange={(e) => setGoalFormData(prev => ({ ...prev, title: e.target.value }))}
+                    className="learning-input"
+                    placeholder="Enter goal title"
+                    required
                   />
                 </div>
-                <div className="flex space-x-3">
-                  <button
-                    type="submit"
-                    className="flex items-center space-x-2 bg-primary text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-dark transition-colors"
-                  >
-                    <ApperIcon name="Check" className="w-4 h-4" />
-                    <span>Update Goal</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingGoal(null)}
-                    className="flex items-center space-x-2 neu-button px-4 py-2 rounded-xl font-medium text-slate-600 dark:text-slate-400"
-                  >
-                    <ApperIcon name="X" className="w-4 h-4" />
-                    <span>Cancel</span>
-                  </button>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Target Date
+                  </label>
+                  <input
+                    type="date"
+                    value={goalFormData.targetDate}
+                    onChange={(e) => setGoalFormData(prev => ({ ...prev, targetDate: e.target.value }))}
+                    className="learning-input"
+                    required
+                  />
                 </div>
-              </form>
-            ) : (
-              <>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-secondary to-accent rounded-xl flex items-center justify-center">
-                      <ApperIcon name="Target" className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={goalFormData.description}
+                  onChange={(e) => setGoalFormData(prev => ({ ...prev, description: e.target.value }))}
+                  className="learning-input h-20 resize-none"
+                  placeholder="Describe what you want to achieve"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Initial Progress: {goalFormData.progress}%
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={goalFormData.progress}
+                  onChange={(e) => setGoalFormData(prev => ({ ...prev, progress: parseInt(e.target.value) }))}
+                  className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  type="submit"
+                  className="flex items-center space-x-2 bg-primary text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-dark transition-colors"
+                >
+                  <ApperIcon name="Check" className="w-4 h-4" />
+                  <span>Add Goal</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(false)}
+                  className="flex items-center space-x-2 neu-button px-4 py-2 rounded-xl font-medium text-slate-600 dark:text-slate-400"
+                >
+                  <ApperIcon name="X" className="w-4 h-4" />
+                  <span>Cancel</span>
+                </button>
+              </div>
+            </motion.form>
+          )}
+        </AnimatePresence>
+        
+        <div className="space-y-4">
+          {goals.map((goal, index) => (
+            <motion.div
+            <motion.div
+              key={goal.id}
+              className="learning-card p-6 group"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+            >
+              {editingGoal === goal.id ? (
+                <form onSubmit={handleUpdateGoal} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Goal Title
+                      </label>
+                      <input
+                        type="text"
+                        value={goalFormData.title}
+                        onChange={(e) => setGoalFormData(prev => ({ ...prev, title: e.target.value }))}
+                        className="learning-input"
+                        required
+                      />
                     </div>
-                    <div className="flex-1">
-                      <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                        {goal.title}
-                      </h4>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
-                        Target: {goal.targetDate}
-                      </p>
-                      {goal.description && (
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                          {goal.description}
-                        </p>
-                      )}
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Target Date
+                      </label>
+                      <input
+                        type="date"
+                        value={goalFormData.targetDate}
+                        onChange={(e) => setGoalFormData(prev => ({ ...prev, targetDate: e.target.value }))}
+                        className="learning-input"
+                        required
+                      />
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <div 
-                      className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      value={goalFormData.description}
+                      onChange={(e) => setGoalFormData(prev => ({ ...prev, description: e.target.value }))}
+                      className="learning-input h-20 resize-none"
+                      placeholder="Describe what you want to achieve"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      Progress: {goalFormData.progress}%
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={goalFormData.progress}
+                      onChange={(e) => setGoalFormData(prev => ({ ...prev, progress: parseInt(e.target.value) }))}
+                      className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                  <div className="flex space-x-3">
+                    <button
+                      type="submit"
+                      className="flex items-center space-x-2 bg-primary text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-dark transition-colors"
                     >
-                      <button
-                        onClick={() => handleEditGoal(goal)}
-                        className="p-1.5 neu-button rounded-lg text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                      >
-                        <ApperIcon name="Edit" className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteGoal(goal.id)}
-                        className="p-1.5 neu-button rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      >
-                        <ApperIcon name="Trash2" className="w-4 h-4" />
-                      </button>
+                      <ApperIcon name="Check" className="w-4 h-4" />
+                      <span>Update Goal</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingGoal(null)}
+                      className="flex items-center space-x-2 neu-button px-4 py-2 rounded-xl font-medium text-slate-600 dark:text-slate-400"
+                    >
+                      <ApperIcon name="X" className="w-4 h-4" />
+                      <span>Cancel</span>
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-secondary to-accent rounded-xl flex items-center justify-center">
+                        <ApperIcon name="Target" className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                          {goal.title || goal.Name}
+                        </h4>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          Target: {goal.targetDate}
+                        </p>
+                        {goal.description && (
+                          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                            {goal.description}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <CircularProgress progress={goal.progress} size={60} />
+                    <div className="flex items-center space-x-3">
+                      <div 
+                        className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <button
+                          onClick={() => handleEditGoal(goal)}
+                          className="p-1.5 neu-button rounded-lg text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                        >
+                          <ApperIcon name="Edit" className="w-4 h-4" />
+                        </button>
+                        <button
+                        <button
+                          onClick={() => handleDeleteGoal(goal.id)}
+                          className="p-1.5 neu-button rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          <ApperIcon name="Trash2" className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <CircularProgress progress={goal.progress || 0} size={60} />
+                    </div>
                   </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-600 dark:text-slate-400">Progress</span>
-                    <span className="font-medium text-slate-900 dark:text-slate-100">{goal.progress}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={goal.progress}
-                    onChange={(e) => handleUpdateGoalProgress(goal.id, parseInt(e.target.value))}
-                    className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
-                  />
-                  <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mt-2">
-                    <motion.div
-                      className="bg-gradient-to-r from-secondary to-accent h-2 rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${goal.progress}%` }}
-                      transition={{ duration: 1, delay: index * 0.2 }}
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600 dark:text-slate-400">Progress</span>
+                      <span className="font-medium text-slate-900 dark:text-slate-100">{goal.progress || 0}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={goal.progress || 0}
+                      onChange={(e) => handleUpdateGoalProgress(goal.Id, parseInt(e.target.value))}
+                      className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer slider"
                     />
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mt-2">
+                      <motion.div
+                        className="bg-gradient-to-r from-secondary to-accent h-2 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${goal.progress || 0}%` }}
+                        transition={{ duration: 1, delay: index * 0.2 }}
+                      />
+                    </div>
                   </div>
-                </div>
-              </>
-            )}
-          </motion.div>
-        ))}
+                </>
+              )}
+            </motion.div>
+          ))}
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
+
+
+  // Show authentication message if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="learning-card p-8 text-center">
+        <ApperIcon name="Lock" className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Authentication Required</h3>
+        <p className="text-slate-600 dark:text-slate-400 mb-4">Please log in to access your learning data.</p>
+        <button
+          onClick={() => navigate('/login')}
+          className="bg-primary text-white px-6 py-2 rounded-xl font-medium hover:bg-primary-dark transition-colors"
+        >
+          Go to Login
+        </button>
+      </div>
+    )
+  }
+
 
 
   return (
