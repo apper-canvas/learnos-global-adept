@@ -1,13 +1,27 @@
 class AchievementService {
   constructor() {
-    // Initialize ApperClient with Project ID and Public Key
-    const { ApperClient } = window.ApperSDK;
-    this.client = new ApperClient({
-      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
-      apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
-    });
+    // Initialize client as null - will be created when needed
+    this.client = null;
     this.tableName = 'achievement';
   }
+
+  // Safe initialization of ApperClient
+  initializeClient() {
+    if (!this.client) {
+      // Check if ApperSDK is available
+      if (typeof window !== 'undefined' && window.ApperSDK && window.ApperSDK.ApperClient) {
+        const { ApperClient } = window.ApperSDK;
+        this.client = new ApperClient({
+          apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+          apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+        });
+      } else {
+        throw new Error('Apper SDK is not available. Make sure the SDK script is loaded.');
+      }
+    }
+    return this.client;
+  }
+
 
   // Get all fields for achievement table
   getAllFields() {
@@ -41,14 +55,17 @@ class AchievementService {
     ];
   }
 
-  // Fetch all achievements with optional filtering and pagination
   async fetchAchievements(filters = {}, pagingInfo = { limit: 20, offset: 0 }) {
     try {
+      // Initialize client safely
+      const client = this.initializeClient();
+      
       const params = {
         fields: this.getAllFields(),
         where: [],
         pagingInfo
       };
+
 
       // Add filters if provided
       if (filters.achievementLevel) {
@@ -81,7 +98,8 @@ class AchievementService {
         SortType: 'DESC'
       }];
 
-      const response = await this.client.fetchRecords(this.tableName, params);
+      const response = await client.fetchRecords(this.tableName, params);
+
       
       // Handle empty or non-existent data
       if (!response || !response.data) {
@@ -110,11 +128,15 @@ class AchievementService {
   // Get a single achievement by ID
   async getAchievementById(achievementId) {
     try {
+      // Initialize client safely
+      const client = this.initializeClient();
+      
       const params = {
         fields: this.getAllFields()
       };
 
-      const response = await this.client.getRecordById(this.tableName, achievementId, params);
+      const response = await client.getRecordById(this.tableName, achievementId, params);
+
       
       // Handle non-existent data
       if (!response || !response.data) {
@@ -142,6 +164,9 @@ class AchievementService {
   // Create new achievements
   async createAchievements(achievementsData) {
     try {
+      // Initialize client safely
+      const client = this.initializeClient();
+      
       // Ensure achievementsData is an array
       const achievements = Array.isArray(achievementsData) ? achievementsData : [achievementsData];
       
@@ -178,7 +203,8 @@ class AchievementService {
         records: records
       };
 
-      const response = await this.client.createRecord(this.tableName, params);
+      const response = await client.createRecord(this.tableName, params);
+
       
       // Handle bulk creation response
       if (response && response.success && response.results) {
@@ -225,6 +251,9 @@ class AchievementService {
   // Update existing achievements
   async updateAchievements(achievementsData) {
     try {
+      // Initialize client safely
+      const client = this.initializeClient();
+      
       // Ensure achievementsData is an array
       const achievements = Array.isArray(achievementsData) ? achievementsData : [achievementsData];
       
@@ -263,7 +292,8 @@ class AchievementService {
         records: records
       };
 
-      const response = await this.client.updateRecord(this.tableName, params);
+      const response = await client.updateRecord(this.tableName, params);
+
       
       // Handle bulk update response
       if (response && response.success && response.results) {
@@ -304,6 +334,9 @@ class AchievementService {
   // Delete achievements by IDs
   async deleteAchievements(achievementIds) {
     try {
+      // Initialize client safely
+      const client = this.initializeClient();
+      
       // Ensure achievementIds is an array
       const ids = Array.isArray(achievementIds) ? achievementIds : [achievementIds];
       
@@ -311,7 +344,8 @@ class AchievementService {
         RecordIds: ids
       };
 
-      const response = await this.client.deleteRecord(this.tableName, params);
+      const response = await client.deleteRecord(this.tableName, params);
+
       
       // Handle bulk deletion response
       if (response && response.success && response.results) {
