@@ -25,7 +25,7 @@ export const goalService = {
     try {
       const fetchParams = {
         fields: allFields,
-        orderBy: [{ fieldName: 'CreatedOn', SortType: 'DESC' }],
+        orderBy: [{ fieldName: 'target_date', SortType: 'ASC' }],
         ...params
       }
       
@@ -58,11 +58,6 @@ export const goalService = {
         }
       })
 
-      // Ensure progress is a number
-      if (filteredData.progress !== undefined) {
-        filteredData.progress = parseInt(filteredData.progress) || 0
-      }
-
       // Format tags as comma-separated string if it's an array
       if (Array.isArray(filteredData.Tags)) {
         filteredData.Tags = filteredData.Tags.join(',')
@@ -94,11 +89,6 @@ export const goalService = {
           filteredData[field] = goalData[field]
         }
       })
-
-      // Ensure progress is a number
-      if (filteredData.progress !== undefined) {
-        filteredData.progress = parseInt(filteredData.progress) || 0
-      }
 
       // Format tags as comma-separated string if it's an array
       if (Array.isArray(filteredData.Tags)) {
