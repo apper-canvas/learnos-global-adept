@@ -26,6 +26,10 @@ export default function MainFeature() {
   ])
 
   const [showAddForm, setShowAddForm] = useState(false)
+  const [expandedNotes, setExpandedNotes] = useState(new Set())
+  const [editingNote, setEditingNote] = useState(null)
+  const [editForm, setEditForm] = useState({ title: '', content: '', tags: '' })
+
   const [formData, setFormData] = useState({ title: '', description: '', color: 'bg-blue-500' })
 
   const tabs = [
@@ -79,6 +83,64 @@ export default function MainFeature() {
   const handleSubjectClick = (subjectId) => {
     navigate(`/subject/${subjectId}`)
   }
+
+  const handleNoteClick = (noteId) => {
+    setExpandedNotes(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(noteId)) {
+        newSet.delete(noteId)
+      } else {
+        newSet.add(noteId)
+      }
+      return newSet
+    })
+  }
+
+  const handleEditNote = (note) => {
+    setEditingNote(note.id)
+    setEditForm({
+      title: note.title,
+      content: note.content,
+      tags: note.tags.join(', ')
+    })
+  }
+
+  const handleUpdateNote = (e) => {
+    e.preventDefault()
+    if (!editForm.title.trim() || !editForm.content.trim()) {
+      toast.error('Please enter both title and content')
+      return
+    }
+
+    setNotes(prev => prev.map(note => 
+      note.id === editingNote
+        ? {
+            ...note,
+            title: editForm.title,
+            content: editForm.content,
+            tags: editForm.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+          }
+        : note
+    ))
+    
+    setEditingNote(null)
+    setEditForm({ title: '', content: '', tags: '' })
+    toast.success('Note updated successfully!')
+  }
+
+  const handleDeleteNote = (noteId) => {
+    if (window.confirm('Are you sure you want to delete this note?')) {
+      setNotes(prev => prev.filter(note => note.id !== noteId))
+      setExpandedNotes(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(noteId)
+        return newSet
+      })
+      toast.success('Note deleted successfully!')
+    }
+  }
+
+
 
 
   const CircularProgress = ({ progress, size = 60 }) => {
@@ -272,50 +334,284 @@ export default function MainFeature() {
 
   const renderNotes = () => (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Learning Notes</h3>
-        <p className="text-slate-600 dark:text-slate-400">Your knowledge repository</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Learning Notes</h3>
+          <p className="text-slate-600 dark:text-slate-400">Your knowledge repository - Click on notes to expand them</p>
+        </div>
+        <motion.button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="flex items-center space-x-2 bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transition-all duration-300"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <ApperIcon name="Plus" className="w-4 h-4" />
+          <span>Add Note</span>
+        </motion.button>
       </div>
+      
+      <AnimatePresence>
+        {showAddForm && (
+          <motion.form
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (!formData.title.trim() || !formData.description.trim()) {
+                toast.error('Please enter both title and content')
+                return
+              }
+
+              const newNote = {
+                id: Date.now(),
+                title: formData.title,
+                content: formData.description,
+                tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
+                createdAt: new Date().toISOString().split('T')[0]
+              }
+
+              setNotes(prev => [...prev, newNote])
+              setFormData({ title: '', description: '', tags: '' })
+              setShowAddForm(false)
+              toast.success('Note added successfully!')
+            }}
+            className="learning-card p-6 space-y-4"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Note Title
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  className="learning-input"
+                  placeholder="Enter note title"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Tags (comma-separated)
+                </label>
+                <input
+                  type="text"
+                  value={formData.tags || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+                  className="learning-input"
+                  placeholder="e.g., theory, practice, important"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Content
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                className="learning-input h-32 resize-none"
+                placeholder="Write your note content here..."
+                required
+              />
+            </div>
+            <div className="flex space-x-3">
+              <button
+                type="submit"
+                className="flex items-center space-x-2 bg-primary text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-dark transition-colors"
+              >
+                <ApperIcon name="Check" className="w-4 h-4" />
+                <span>Save Note</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAddForm(false)}
+                className="flex items-center space-x-2 neu-button px-4 py-2 rounded-xl font-medium text-slate-600 dark:text-slate-400"
+              >
+                <ApperIcon name="X" className="w-4 h-4" />
+                <span>Cancel</span>
+              </button>
+            </div>
+          </motion.form>
+        )}
+      </AnimatePresence>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {notes.map((note, index) => (
           <motion.div
             key={note.id}
-            className="learning-card p-6"
+            className="learning-card p-6 group cursor-pointer hover:shadow-lg transition-all duration-300"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
           >
-            <div className="flex items-start justify-between mb-3">
-              <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                {note.title}
-              </h4>
-              <ApperIcon name="FileText" className="w-5 h-5 text-slate-400" />
-            </div>
-            
-            <p className="text-slate-600 dark:text-slate-400 text-sm mb-4 line-clamp-3">
-              {note.content}
-            </p>
-            
-            <div className="flex flex-wrap gap-2 mb-3">
-              {note.tags.map(tag => (
-                <span
-                  key={tag}
-                  className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-lg"
+            <div 
+              className="flex items-start justify-between mb-3"
+              onClick={() => handleNoteClick(note.id)}
+            >
+              <div className="flex-1">
+                <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  {note.title}
+                </h4>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div 
+                  className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  {tag}
-                </span>
-              ))}
+                  <button
+                    onClick={() => handleEditNote(note)}
+                    className="p-1.5 neu-button rounded-lg text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  >
+                    <ApperIcon name="Edit" className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteNote(note.id)}
+                    className="p-1.5 neu-button rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  >
+                    <ApperIcon name="Trash2" className="w-4 h-4" />
+                  </button>
+                </div>
+                <motion.div
+                  animate={{ rotate: expandedNotes.has(note.id) ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ApperIcon name="ChevronDown" className="w-5 h-5 text-slate-400" />
+                </motion.div>
+              </div>
             </div>
             
-            <div className="text-xs text-slate-500 dark:text-slate-400">
-              Created {note.createdAt}
-            </div>
+            {/* Preview when collapsed */}
+            {!expandedNotes.has(note.id) && (
+              <p className="text-slate-600 dark:text-slate-400 text-sm mb-4 line-clamp-3">
+                {note.content}
+              </p>
+            )}
+            
+            {/* Full content when expanded */}
+            <AnimatePresence>
+              {expandedNotes.has(note.id) && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700"
+                >
+                  {editingNote === note.id ? (
+                    <form onSubmit={handleUpdateNote} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Title
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.title}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                          className="learning-input"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Content
+                        </label>
+                        <textarea
+                          value={editForm.content}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, content: e.target.value }))}
+                          className="learning-input h-32 resize-none"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Tags (comma-separated)
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.tags}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, tags: e.target.value }))}
+                          className="learning-input"
+                          placeholder="e.g., theory, practice, important"
+                        />
+                      </div>
+                      <div className="flex space-x-3">
+                        <button
+                          type="submit"
+                          className="flex items-center space-x-2 bg-primary text-white px-4 py-2 rounded-xl font-medium hover:bg-primary-dark transition-colors"
+                        >
+                          <ApperIcon name="Check" className="w-4 h-4" />
+                          <span>Update</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingNote(null)}
+                          className="flex items-center space-x-2 neu-button px-4 py-2 rounded-xl font-medium text-slate-600 dark:text-slate-400"
+                        >
+                          <ApperIcon name="X" className="w-4 h-4" />
+                          <span>Cancel</span>
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4">
+                        <h5 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">Full Content</h5>
+                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed whitespace-pre-wrap">
+                          {note.content}
+                        </p>
+                      </div>
+                      
+                      {note.tags && note.tags.length > 0 && (
+                        <div>
+                          <h5 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">Tags</h5>
+                          <div className="flex flex-wrap gap-2">
+                            {note.tags.map(tag => (
+                              <span
+                                key={tag}
+                                className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-lg"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-700">
+                        <div className="text-xs text-slate-500 dark:text-slate-400">
+                          Created {note.createdAt}
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleEditNote(note)}
+                            className="flex items-center space-x-1 text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 px-2 py-1 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors"
+                          >
+                            <ApperIcon name="Edit" className="w-3 h-3" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteNote(note.id)}
+                            className="flex items-center space-x-1 text-xs bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 px-2 py-1 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/30 transition-colors"
+                          >
+                            <ApperIcon name="Trash2" className="w-3 h-3" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         ))}
       </div>
     </div>
   )
+
 
   const renderGoals = () => (
     <div className="space-y-6">
