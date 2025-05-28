@@ -54,8 +54,6 @@ export default {
       variants: ['hover', 'focus', 'active'],
     },
   ],
-
-  },
   plugins: [],
   darkMode: 'class',
 }
